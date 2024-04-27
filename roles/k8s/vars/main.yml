@@ -1,0 +1,31 @@
+---
+# vars file for k8s
+docker_repo: "deb [arch={{ 'amd64' if ansible_architecture == 'x86_64' else 'arm64' }} signed-by=/etc/apt/keyrings/docker-apt-keyring.asc] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+docker_gpg: "https://download.docker.com/linux/debian/gpg"
+
+k8s_repository_debian: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.asc] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /"
+k8s_gpg_key_debian: https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key
+
+
+sysctl_config:
+  - name: net.ipv4.ip_forward
+    value: 1
+  - name: net.bridge.bridge-nf-call-iptables
+    value: 1
+  - name: net.bridge.bridge-nf-call-ip6tables
+    value: 1
+
+
+k8s_pod_network: "10.244.0.0/16"
+k8s_api_port: "6443"
+
+k8s_admin_config: "/etc/kubernetes/admin.conf"
+k8s_user: "sysadmin"
+k8s_user_home: "/home/{{ k8s_user }}"
+k8s_token_file_master: "join-master-command"
+k8s_token_file_node: "join-node-command"
+k8s_kubelet_config: "/etc/kubernetes/kubelet.conf"
+
+calico_net_url: "https://raw.githubusercontent.com/projectcalico/calico/v3.27.3/manifests/tigera-operator.yaml"
+calico_net_config: "calico.yaml"
+

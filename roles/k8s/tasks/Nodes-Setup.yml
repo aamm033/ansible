@@ -1,0 +1,119 @@
+---
+# tasks file for master nodes
+- name: Configure first Master Node
+  block:
+   
+   - name: Initialise the Kubernetes cluster using kubeadm
+     become: true
+     command: kubeadm init --control-plane-endpoint "{{ hostvars[groups['k8s_masters'][0]].host }}" 
+     args:
+       creates: "{{ k8s_admin_config }}"
+   
+   - name: Setup kubeconfig for {{ k8s_user }} user
+     file:
+       path: "{{ k8s_user_home }}/.kube"
+       state: directory
+       owner: "{{ k8s_user }}"
+       group: "{{ k8s_user }}"
+       mode: "0755"
+   
+   - name: Copy {{ k8s_admin_config }}
+     become: true
+     copy:
+       src: "{{ k8s_admin_config }}"
+       dest: "{{ k8s_user_home }}/.kube/config"
+       owner: "{{ k8s_user }}"
+       group: "{{ k8s_user }}"
+       mode: "0640"
+       remote_src: yes    
+   
+   - name: Download {{ calico_net_url }}
+     get_url:
+       url: "{{ calico_net_url }}"
+       dest: "{{ k8s_user_home }}/{{ calico_net_config }}"
+       owner: "{{ k8s_user }}"
+       group: "{{ k8s_user }}"
+       mode: "0640" 
+   
+   
+   - name: Install calico pod network {{ calico_net_config }}
+     become: true
+     become_user: "{{ k8s_user }}"
+     command: kubectl apply -f "{{ k8s_user_home }}/{{ calico_net_config }}"
+   
+   - name: Create a new certificate key
+     become: true
+     command: kubeadm init phase upload-certs --upload-certs
+     register: join_certificate_key
+   
+   - name: Generate master join command
+     become: true
+     command: kubeadm token create --print-join-command --certificate-key "{{ join_certificate_key.stdout_lines[2] }}"
+     register: join_master_command
+   
+   - name: Copy master join command to local file
+     become: false
+     local_action: copy content="{{ join_master_command.stdout_lines[0] }}" dest="../{{ k8s_token_file_master }}"
+   
+   - name: Generate node join command
+     command: kubeadm token create --print-join-command
+     register: join_node_command
+   
+   - name: Copy node join command to local file
+     become: false
+     local_action: copy content="{{ join_node_command.stdout_lines[0] }}" dest="../{{ k8s_token_file_node }}"
+  when: "'k8s_first_mn' in group_names"   
+
+- name: Configure other control planes
+  block:
+    - name: Copy {{ k8s_token_file_master }} to server location
+      copy: 
+        src: "../{{ k8s_token_file_master }}"
+        dest: "{{ k8s_user_home }}/{{ k8s_token_file_master }}.sh"
+        owner: "{{ k8s_user }}"
+        group: "{{ k8s_user }}"
+        mode: "0750"
+
+    - name: Join the control plane to cluster unless file {{ k8s_kubelet_config }} exists
+      become: true
+      command: sh "{{ k8s_user_home }}/{{ k8s_token_file_master }}.sh"
+      args:
+        creates: "{{ k8s_kubelet_config }}"
+
+    - name: Setup kubeconfig for {{ k8s_user }} user
+      file:
+        path: "{{ k8s_user_home }}/.kube"
+        state: directory
+        owner: "{{ k8s_user }}"
+        group: "{{ k8s_user }}"
+        mode: "0750"
+    
+    - name: Copy {{ k8s_admin_config }}
+      become: true
+      copy:
+        src: "{{ k8s_admin_config }}"
+        dest: "{{ k8s_user_home }}/.kube/config"
+        owner: "{{ k8s_user }}"
+        group: "{{ k8s_user }}"
+        mode: "0640"
+        remote_src: yes
+
+  when: "'k8s_others_mn' in group_names"
+  
+- name: Configure worker nodes
+  block:
+    - name: Copy {{ k8s_token_file_node }} to server location
+      copy:
+        src: "../{{ k8s_token_file_node }}"
+        dest: "{{ k8s_user_home }}/{{ k8s_token_file_node }}.sh"
+        owner: "{{ k8s_user }}"
+        group: "{{ k8s_user }}"
+        mode: "0750"
+
+    - name: Join the worker node to cluster unless file {{ k8s_kubelet_config }} exists
+      become: true
+      command: sh "{{ k8s_user_home }}/{{ k8s_token_file_node }}.sh"
+      args:
+        creates: "{{ k8s_kubelet_config }}"
+
+  when: "'k8s_workers' in group_names"

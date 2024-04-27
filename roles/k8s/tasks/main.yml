@@ -1,0 +1,6 @@
+# Main file for tasks
+- name: K8S tasks
+  include_tasks: 
+       - Common.yml
+       - Nodes-Setup.yml
+
