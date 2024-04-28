@@ -1,4 +1,3 @@
 ---
 # tasks file for hostfile
----
 - include_tasks: Setup-hostfile.yml

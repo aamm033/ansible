@@ -1,0 +1,7 @@
+---
+- name: Add hosts to the "/etc/hosts" file.
+  hosts: all
+  become: true
+  gather_facts: true
+  roles:
+    - hostfiles
