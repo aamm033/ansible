@@ -1,0 +1,7 @@
+---
+- name: K8S cluster deployment
+  hosts: all
+  become: true
+  gather_facts: true
+  roles:
+    - k8s

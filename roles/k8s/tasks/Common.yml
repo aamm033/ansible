@@ -133,7 +133,7 @@
     name: br_netfilter
     state: present
 
-- name: RedHat | Configure sysctl values
+- name: Configure sysctl values
   sysctl:
     name: "{{ item.name }}"
     value: "{{ item.value }}"

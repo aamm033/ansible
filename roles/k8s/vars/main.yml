@@ -16,7 +16,7 @@ sysctl_config:
     value: 1
 
 
-k8s_pod_network: "10.244.0.0/16"
+k8s_pod_network: "192.168.0.0/16"
 k8s_api_port: "6443"
 
 k8s_admin_config: "/etc/kubernetes/admin.conf"
@@ -26,6 +26,6 @@ k8s_token_file_master: "join-master-command"
 k8s_token_file_node: "join-node-command"
 k8s_kubelet_config: "/etc/kubernetes/kubelet.conf"
 
-calico_net_url: "https://raw.githubusercontent.com/projectcalico/calico/v3.27.3/manifests/tigera-operator.yaml"
+calico_net_url: "https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml"
 calico_net_config: "calico.yaml"
 

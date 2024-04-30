@@ -3,9 +3,9 @@
 - name: Configure first Master Node
   block:
    
-   - name: Initialise the Kubernetes cluster using kubeadm
+   - name: Initialize the Kubernetes cluster using kubeadm
      become: true
-     command: kubeadm init --control-plane-endpoint "{{ hostvars[groups['k8s_masters'][0]].host }}" 
+     command: kubeadm init --control-plane-endpoint="{{ hostvars[groups['k8s_masters'][0]].ansible_hostname }}":"{{ k8s_api_port }}"  --pod-network-cidr="{{ k8s_pod_network }}"
      args:
        creates: "{{ k8s_admin_config }}"
    
@@ -53,7 +53,7 @@
    
    - name: Copy master join command to local file
      become: false
-     local_action: copy content="{{ join_master_command.stdout_lines[0] }}" dest="../{{ k8s_token_file_master }}"
+     local_action: copy content="{{ join_master_command.stdout_lines[0] }}" dest="~/{{ k8s_token_file_master }}"
    
    - name: Generate node join command
      command: kubeadm token create --print-join-command
@@ -61,14 +61,14 @@
    
    - name: Copy node join command to local file
      become: false
-     local_action: copy content="{{ join_node_command.stdout_lines[0] }}" dest="../{{ k8s_token_file_node }}"
+     local_action: copy content="{{ join_node_command.stdout_lines[0] }}" dest="~/{{ k8s_token_file_node }}"
   when: "'k8s_first_mn' in group_names"   
 
 - name: Configure other control planes
   block:
     - name: Copy {{ k8s_token_file_master }} to server location
       copy: 
-        src: "../{{ k8s_token_file_master }}"
+        src: "~/{{ k8s_token_file_master }}"
         dest: "{{ k8s_user_home }}/{{ k8s_token_file_master }}.sh"
         owner: "{{ k8s_user }}"
         group: "{{ k8s_user }}"
@@ -104,7 +104,7 @@
   block:
     - name: Copy {{ k8s_token_file_node }} to server location
       copy:
-        src: "../{{ k8s_token_file_node }}"
+        src: "~/{{ k8s_token_file_node }}"
         dest: "{{ k8s_user_home }}/{{ k8s_token_file_node }}.sh"
         owner: "{{ k8s_user }}"
         group: "{{ k8s_user }}"
