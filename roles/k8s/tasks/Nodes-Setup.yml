@@ -39,7 +39,7 @@
    - name: Install calico pod network {{ calico_net_config }}
      become: true
      become_user: "{{ k8s_user }}"
-     command: kubectl apply -f "{{ k8s_user_home }}/{{ calico_net_config }}"
+     command: kubectl create -f "{{ k8s_user_home }}/{{ calico_net_config }}"
    
    - name: Create a new certificate key
      become: true

@@ -26,6 +26,6 @@ k8s_token_file_master: "join-master-command"
 k8s_token_file_node: "join-node-command"
 k8s_kubelet_config: "/etc/kubernetes/kubelet.conf"
 
-calico_net_url: "https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml"
+calico_net_url: "https://raw.githubusercontent.com/projectcalico/calico/v3.27.3/manifests/calico.yaml"
 calico_net_config: "calico.yaml"
 
