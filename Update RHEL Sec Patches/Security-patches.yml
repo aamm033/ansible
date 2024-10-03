@@ -1,0 +1,20 @@
+---
+- name: Update security patches on RHEL
+  hosts: all
+  become: yes
+  gather_facts: yes
+  tasks:
+    - name: Aplicar parches de seguridad en RHEL
+      block:
+       - name: Actualizar 
+         yum:
+           name: '*'
+           state: latest
+           security: yes
+
+       - name: Reiniciar si se hizo un cambio a nivel de kernel
+         reboot:
+           when: ansible_facts.packages['kernel'] is changed
+       
+      when: ansible_distribution == 'RedHat'
+
